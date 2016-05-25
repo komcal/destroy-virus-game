@@ -1,0 +1,15 @@
+{
+  "name": "destroy-virus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "",
+	"start": "php -S localhost:3000"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^2.10.2"
+  }
+}
