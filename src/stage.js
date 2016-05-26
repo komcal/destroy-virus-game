@@ -5,9 +5,12 @@ class stage {
     this.startX = 100
     this.size = 800
   }
-  render(virus, player, ctx){
+  render(virus, player, bullet, ctx){
     for(let i = 0 ; i < this.number ; i++){
       virus[i].create(ctx)
+    }
+    for(let i = 0 ; i< bullet.length ; i++){
+      bullet[i].create(ctx)
     }
     player.create(ctx)
   }
