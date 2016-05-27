@@ -15,40 +15,47 @@ for(let i=0 ; i<stage.number ; i++){
 }
 
 stage.render(virus, player, bullets, ctx)
-const intervalID = setInterval(() => {
-  canvas.width = canvas.width
-  virus.forEach(item => {
-    for(let i=0 ; i<bullets.length ; i++){
-      //(bullets[i].x >=item.x-item.size || bullets[i].x <=item.x+item.size) && (bullets[i].y >=item.y-item.size || bullets[i].y <=item.y+item.size)
-      if((bullets[i].x >=Math.abs(item.x)-item.size && bullets[i].x <=Math.abs(item.x)+item.size) && (bullets[i].y >=Math.abs(item.y)-item.size && bullets[i].y+bullets[i].sizeY <=Math.abs(item.y)+item.size*2)){
-        bullets.splice(i, 1)
-        //delete ball
-        console.log('ttt')
-      }
-    }
-    item.update()
-  })
-  for(let i=0 ; i<bullets.length ; i++){
-    if(bullets[i].y <= 0){
-      bullets.splice(i, 1)
-    }
-    else{
-      bullets[i].update()
-    }
-  }
+var intervalID = setInterval(() => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   stage.render(virus, player, bullets, ctx)
+  let playing = stage.check(player,virus, intervalID, canvas, ctx) //check end game
+  if(playing){ //not win not lose
+    virus.forEach(item => { //check each virus overlap
+      bullets.forEach(bullet => {
+        if((bullet.x >=Math.abs(item.x)-item.size && bullet.x <=Math.abs(item.x)+item.size) && (bullet.y >=Math.abs(item.y)-item.size && bullet.y+bullet.sizeY <=Math.abs(item.y)+item.size*2)){
+        //check if each bullet overlap virus
+          bullets.splice(bullets.indexOf(bullet), 1) //delete bullet
+          if(item.size <=20){ //check the virus can small?
+            virus.splice(virus.indexOf(item),1) //delete virus
+          } else { //virus can smaller, add more virus
+            item.size/=2
+            let v = new Virus(item.x, item.y, item.size)
+            virus.push(v)
+          }
+        }
+      })
+      item.update() //update virus
+    })
+    bullets.forEach(bullet => { //update bullet
+      if(bullet.y <= 0) {
+        bullets.splice(bullets.indexOf(bullet), 1)
+      } else {
+        bullet.update()
+      }
+    })
+  }
 }, 8)
 
 document.onkeydown = ({keyCode}) => {
-  if (keyCode == 37) { //left
-    (player.x >=0)? player.x-=20:player.x
+  if (keyCode == 37) { //move left
+    (player.x >=0)? player.x-=player.sizeX:player.x
   }
-  else if(keyCode == 39) { //right
-    (player.x <=stage.size-player.sizeX)? player.x+=20:player.x
+  else if(keyCode == 39) { //move right
+    (player.x <=stage.size-player.sizeX)? player.x+=player.sizeX:player.x
   }
 }
 document.onkeyup = ({keyCode}) => {
-  if(keyCode == 32) { //space
+  if(keyCode == 32) { //click spacebar shoot
     bullets.push(new Bullet(player.x+player.sizeX/2, player.y))
   }
 }
