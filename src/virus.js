@@ -3,8 +3,8 @@ var stage = new Stage()
 class virus {
   constructor(x,y,size) {
     this.x = x
-    this.runX = Math.floor(Math.random()*6+3)
-    this.runY = Math.floor(Math.random()*6+3)
+    this.runX = Math.floor(Math.random()*2+1)+Math.random()
+    this.runY = Math.floor(Math.random()*2+1)+Math.random()
     this.y = y
     this.size =size
   }
