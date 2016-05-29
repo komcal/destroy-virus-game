@@ -2,4 +2,9 @@
   border: solid black 1px;
   margin: auto;
   display: block;
+  background-image: url('./img/bg.png');
+  background-size: cover;
+}
+body{
+  background: black;
 }
