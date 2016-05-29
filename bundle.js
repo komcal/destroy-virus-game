@@ -75,24 +75,31 @@
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 
-	var player = new _player2.default(25, 50);
 	var virus = [];
 	var bullets = [];
-	for (var i = 0; i < stage.number; i++) {
-	  virus[i] = new _virus2.default(stage.startX * (i + 1), stage.startY, 40);
+	var player = new _player2.default(20, 50);
+	var canClick = true;
+	function newgame() {
+	  virus = [];
+	  bullets = [];
+	  for (var i = 0; i < stage.ballSize[stage.number - 1].length; i++) {
+	    virus[i] = new _virus2.default(stage.startX * (i + 1), stage.startY, stage.ballSize[stage.number - 1][i]);
+	  }
+	  stage.render(virus, player, bullets, ctx);
 	}
 
-	stage.render(virus, player, bullets, ctx);
+	newgame();
+
 	var intervalID = setInterval(function () {
 	  ctx.clearRect(0, 0, canvas.width, canvas.height);
 	  stage.render(virus, player, bullets, ctx);
-	  var playing = stage.check(player, virus, intervalID, canvas, ctx); //check end game
-	  if (playing) {
-	    //not win not lose
+	  var win = stage.check(player, virus, intervalID, canvas, ctx, newgame); //check end game
+	  if (!win) {
+	    //not win
 	    virus.forEach(function (item) {
 	      //check each virus overlap
 	      bullets.forEach(function (bullet) {
-	        if (bullet.x >= Math.abs(item.x) - item.size && bullet.x <= Math.abs(item.x) + item.size && bullet.y >= Math.abs(item.y) - item.size && bullet.y + bullet.sizeY <= Math.abs(item.y) + item.size * 2) {
+	        if (bullet.x >= Math.abs(item.x) - item.size && bullet.x <= Math.abs(item.x) + item.size && bullet.y + bullet.sizeY < Math.abs(item.y) + item.size + bullet.sizeY && bullet.y + bullet.sizeY > Math.abs(item.y) - item.size - bullet.y) {
 	          //check if each bullet overlap virus
 	          bullets.splice(bullets.indexOf(bullet), 1); //delete bullet
 	          if (item.size <= 20) {
@@ -101,7 +108,7 @@
 	          } else {
 	              //virus can smaller, add more virus
 	              item.size /= 2;
-	              var v = new _virus2.default(item.x, item.y, item.size);
+	              var v = new _virus2.default(-item.x, item.y, item.size);
 	              virus.push(v);
 	            }
 	        }
@@ -116,26 +123,43 @@
 	        bullet.update();
 	      }
 	    });
+	  } else {
+	    //next stage
+	    console.log('win');
+	    alert('NEXT STAGE');
+	    //clearInterval(intervalID)
+	    ctx.clearRect(0, 0, canvas.width, canvas.height);
+	    stage.number++;
+	    if (stage.number > 5) {
+	      alert('YOU WIN');
+	      clearInterval(intervalID);
+	    } else {
+	      newgame();
+	    }
 	  }
-	}, 8);
+	}, 4);
 
 	document.onkeydown = function (_ref) {
 	  var keyCode = _ref.keyCode;
 
 	  if (keyCode == 37) {
 	    //move left
-	    player.x >= 0 ? player.x -= player.sizeX : player.x;
+	    player.x > 0 ? player.x -= player.sizeX + 20 : player.x;
 	  } else if (keyCode == 39) {
 	    //move right
-	    player.x <= stage.size - player.sizeX ? player.x += player.sizeX : player.x;
+	    player.x < stage.size - player.sizeX ? player.x += player.sizeX + 20 : player.x;
 	  }
 	};
 	document.onkeyup = function (_ref2) {
 	  var keyCode = _ref2.keyCode;
 
-	  if (keyCode == 32) {
+	  if (keyCode == 32 && canClick) {
 	    //click spacebar shoot
 	    bullets.push(new _bullet2.default(player.x + player.sizeX / 2, player.y));
+	    canClick = false;
+	    setTimeout(function () {
+	      canClick = true;
+	    }, 600);
 	  }
 	};
 
@@ -166,8 +190,8 @@
 	    _classCallCheck(this, virus);
 
 	    this.x = x;
-	    this.runX = Math.floor(Math.random() * 6 + 3);
-	    this.runY = Math.floor(Math.random() * 6 + 3);
+	    this.runX = Math.floor(Math.random() * 2 + 1) + Math.random();
+	    this.runY = Math.floor(Math.random() * 2 + 1) + Math.random();
 	    this.y = y;
 	    this.size = size;
 	  }
@@ -177,6 +201,9 @@
 	    value: function create(ctx) {
 	      ctx.beginPath();
 	      ctx.arc(Math.abs(this.x), Math.abs(this.y), this.size, 0, 2 * Math.PI);
+	      ctx.fillStyle = '#9C661F';
+	      ctx.fill();
+	      ctx.strokeStyle = '#9C661F';
 	      ctx.stroke();
 	    }
 	  }, {
@@ -218,10 +245,11 @@
 	  function stage() {
 	    _classCallCheck(this, stage);
 
-	    this.number = 3;
+	    this.number = 1;
 	    this.startY = 100;
 	    this.startX = 100;
 	    this.size = 800;
+	    this.ballSize = [[40, 40], [40, 40, 40], [40, 80, 80], [40, 40, 40, 80], [40, 40, 80, 80, 80]];
 	  }
 
 	  _createClass(stage, [{
@@ -236,28 +264,22 @@
 	      player.create(ctx);
 	    }
 	  }, {
-	    key: 'next',
-	    value: function next() {
-	      this.number++;
-	    }
-	  }, {
 	    key: 'check',
-	    value: function check(player, virus, intervalID, canvas, ctx) {
+	    value: function check(player, virus, intervalID, canvas, ctx, newgame) {
 	      if (virus.length == 0) {
-	        console.log('win');
-	        clearInterval(intervalID);
-	        ctx.clearRect(0, 0, canvas.width, canvas.height);
-	        return false;
+	        return true;
 	      }
 	      virus.forEach(function (item) {
+	        //lose
 	        if (player.x >= Math.abs(item.x) - item.size && player.x + player.sizeX <= Math.abs(item.x) + item.size && player.y >= Math.abs(item.y) - item.size && player.y + player.sizeY <= Math.abs(item.y) + item.size * 2) {
 	          console.log('lose');
 	          clearInterval(intervalID);
 	          ctx.clearRect(0, 0, canvas.width, canvas.height);
+	          alert('YOU LOSE!!!');
 	          return false;
 	        }
 	      });
-	      return true;
+	      return false;
 	    }
 	  }]);
 
@@ -324,7 +346,8 @@
 	    this.x = x;
 	    this.y = y;
 	    this.sizeX = 5;
-	    this.sizeY = 40;
+	    this.sizeY = 200;
+	    this.speed = 3;
 	  }
 
 	  _createClass(bullet, [{
@@ -336,7 +359,7 @@
 	  }, {
 	    key: 'update',
 	    value: function update() {
-	      this.y -= 5;
+	      this.y -= this.speed;
 	    }
 	  }]);
 
