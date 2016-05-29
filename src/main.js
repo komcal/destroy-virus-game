@@ -8,13 +8,13 @@ var ctx = canvas.getContext('2d')
 
 var virus = []
 var bullets = []
-var player = new Player(25, 50)
+var player = new Player(20, 50)
 var canClick = true
 function newgame() {
   virus = []
   bullets = []
-  for(let i=0 ; i<stage.number ; i++){
-    virus[i] = new Virus(stage.startX*(i+1), stage.startY, stage.ballSize[stage.number-1])
+  for(let i=0 ; i<stage.ballSize[stage.number-1].length ; i++){
+    virus[i] = new Virus(stage.startX*(i+1), stage.startY, stage.ballSize[stage.number-1][i])
   }
   stage.render(virus, player, bullets, ctx)
 }
@@ -50,27 +50,33 @@ var intervalID = setInterval(() => {
         bullet.update()
       }
     })
-  } else {
+  } else { //next stage
     console.log('win')
+    alert('NEXT STAGE')
     //clearInterval(intervalID)
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     stage.number++
-    newgame()
+    if(stage.number >5){
+      alert('YOU WIN')
+      clearInterval(intervalID)
+    } else {
+      newgame()
+    }
   }
 }, 4)
 
 document.onkeydown = ({keyCode}) => {
   if (keyCode == 37) { //move left
-    (player.x >=0)? player.x-=player.sizeX+10:player.x
+    (player.x >0)? player.x-=player.sizeX+20:player.x
   }
   else if(keyCode == 39) { //move right
-    (player.x <=stage.size-player.sizeX)? player.x+=player.sizeX+10:player.x
+    (player.x <stage.size-player.sizeX)? player.x+=player.sizeX+20:player.x
   }
 }
 document.onkeyup = ({keyCode}) => {
   if(keyCode == 32 && canClick ) { //click spacebar shoot
     bullets.push(new Bullet(player.x+player.sizeX/2, player.y))
     canClick = false
-    setTimeout(() => {canClick = true},300)
+    setTimeout(() => {canClick = true},600)
   }
 }

@@ -11,6 +11,9 @@ class virus {
   create(ctx) {
     ctx.beginPath()
     ctx.arc(Math.abs(this.x),Math.abs(this.y),this.size,0,2*Math.PI)
+    ctx.fillStyle = '#9C661F'
+    ctx.fill()
+    ctx.strokeStyle = '#9C661F'
     ctx.stroke()
   }
   update() {
